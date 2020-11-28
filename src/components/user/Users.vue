@@ -43,7 +43,7 @@
             <el-button @click="removeUser(slotProps.row.id)" type="danger" size="mini" icon="el-icon-delete"></el-button>
             <!-- 分配角色按钮 -->
             <el-tooltip effect="dark" content="分配角色" placement="top" :enterable="false">
-              <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
+              <el-button type="warning" size="mini" icon="el-icon-setting" @click="setRole(slotProps.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -108,6 +108,33 @@
     <el-button type="primary" @click="eitUserInfo">确 定</el-button>
   </span>
     </el-dialog>
+
+    <!-- 分配角色的对话框 -->
+    <el-dialog
+            title="分配角色"
+            :visible.sync="setRoleDialogVisible"
+            width="50%"
+            @close="setRoleDialogClosed">
+      <div>
+        <p>当前用户名称: {{userInfo.username}}</p>
+        <p>当前用户角色: {{userInfo.role_name}}</p>
+        <p>分配新角色:
+          <el-select v-model="selectedRoleId" placeholder="请选择">
+            <el-option
+                    v-for="item in roleList"
+                    :key="item.id"
+                    :label="item.roleName"
+                    :value="item.id">
+            </el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+    <el-button @click="setRoleDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
+  </span>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -127,7 +154,6 @@
         return callback(new Error('请输入正确的邮箱'))
       }
 
-
       /* 自定义验证手机的规则 */
       const checkMobile = (rule, value, callback) => {
         const regMobile = /^1[3|4|5|7|8][0-9]{9}$/
@@ -137,7 +163,6 @@
         return callback(new Error('请输入正确的手机号'))
 
       }
-
 
      return {
        /* 请求用户列表的参数对象 */
@@ -175,7 +200,11 @@
        total: 0,
        addDialogVisible: false,
        editDialogVisible: false,
-       editUserForm: {}
+       editUserForm: {},
+       setRoleDialogVisible: false,
+       userInfo: {},
+       roleList: [],
+       selectedRoleId: ''
      }
     },
     methods: {
@@ -269,6 +298,35 @@
         }
         this.$message.success('删除用户成功')
         this.getUserList()
+      },
+      /* 分配角色 */
+      async setRole(userInfo) {
+        this.userInfo = userInfo
+        const {data: res} = await this.$http.get('roles')
+        if(res.meta.status !== 200) {
+          return this.$message.error('get roles fail')
+        }
+        this.roleList = res.data
+        this.setRoleDialogVisible = true
+      },
+      /* 保存新分配的用户角色 */
+      async saveRoleInfo() {
+        if (!this.selectedRoleId) {
+          return this.$message.error('请选择要分配的角色')
+        }
+        const {data: res} = await this.$http.put('users/${this.userInfo.id}/role',
+            {rid : this.selectedRoleId})
+        if (res.meta.status !== 200) {
+          console.log(res);
+          return this.$message.error('分配角色失败')
+        }
+        this.$message.success('分配用户角色成功')
+        this.getUserList()
+        this.setRoleDialogVisible = false
+      },
+      /* 监听分配角色对话框的关闭事件 */
+      setRoleDialogClosed() {
+        this.selectedRoleId = ''
       }
 
     }
