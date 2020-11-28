@@ -324,7 +324,7 @@
         this.getUserList()
         this.setRoleDialogVisible = false
       },
-      /* 监听分配角色对话框的关闭事件 */
+      /* 监听分配角色对话框关闭事件 */
       setRoleDialogClosed() {
         this.selectedRoleId = ''
       }
