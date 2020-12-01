@@ -108,7 +108,7 @@
         this.rolesList = res.data
       },
       /* 通过id删除权限 */
-      async removeRightById(role,rightId) {
+      async removeRightById(role,right) {
         const result = await this.$confirm('此操作将永久删除该权限, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -119,8 +119,9 @@
           return this.$message.info('取消了删除操作！')
         }
 
-        const {data:res} = await this.$http.delete('roles/${role.id}/rights/${rightId}')
+        const {data:res} = await this.$http.delete(`roles/${role.id}/rights/${right.id}`)
         if (res.meta.status !== 200){
+          console.log(res);
           return this.$message.error('删除权限失败')
         }
         this.$message.success('删除权限成功')
